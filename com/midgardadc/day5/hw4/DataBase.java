@@ -80,9 +80,7 @@ public class DataBase {
 			balancesAutoParts[balancesAutoParts.length - 1] = (BalancesAutoParts) object; 
 		} else if (object instanceof Sale) {
 			sale[sale.length - 1] = (Sale) object; 
-		}
-		
-		
+		}		
 		
 	}
 	
