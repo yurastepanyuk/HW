@@ -3,9 +3,6 @@ package day6.DrinksMenu.RegisterInformation;
 import day6.DrinksMenu.Reference.ReferenceDrinks;
 import day6.DrinksMenu.Reference.ReferenceIngridients;
 
-/**
- * Created by stepanyuk on 24.06.2015.
- */
 public class IngredientsOfDrinks implements RegisterInformationMethods {
 
     private int idDrink;
@@ -17,7 +14,7 @@ public class IngredientsOfDrinks implements RegisterInformationMethods {
 
     @Override
     public void save() {
-        System.out.println("Saving Ingridients of drink");
+        System.out.println("Saving Ingridients of drink " + getIdDrink());
     }
 
     @Override

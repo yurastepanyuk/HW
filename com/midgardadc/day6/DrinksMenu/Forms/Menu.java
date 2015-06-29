@@ -1,20 +1,17 @@
 package day6.DrinksMenu.Forms;
 
 import day6.DrinksMenu.Reference.ReferenceDrinks;
+import day6.DrinksMenu.Reference.ReferenceIngridients;
 import day6.DrinksMenu.RegisterInformation.IngredientsOfDrinks;
 import day6.DrinksMenu.RegisterInformation.PricesOfIngridients;
 
-/**
- * Created by stepanyuk on 24.06.2015.
- */
-public class Menu implements FormsDrawable{
+public class Menu implements FormsDrawable, ActionMenu{
 
     ReferenceDrinks referenceDrinks [];
-    IngredientsOfDrinks ingredientsOfDrinks [][];
-    float pricesOfDrinks[];
+    IngredientsOfDrinks ingredientsOfDrinks [][];//ingredientsOfDrinks [0][] - ingridients drink referenceDrinks [0]
+    float pricesOfDrinks[];//pricesOfDrinks[0] - price drink referenceDrinks [0]
 
     public Menu() {
-        getData();
     }
 
     @Override
@@ -45,5 +42,33 @@ public class Menu implements FormsDrawable{
             i++;
         }
 
+        System.out.println("Read data from DB");
+
+    }
+
+    @Override
+    public void newDrink(String nameDrink) {
+        System.out.println("Added new drink " + nameDrink);
+        ReferenceDrinks referenceDrinks = new ReferenceDrinks();
+        referenceDrinks.setName(nameDrink);
+        referenceDrinks.save(referenceDrinks);
+    }
+
+    @Override
+    public void newIngridient(String nameIngridient) {
+        System.out.println("Added new ingridient " + nameIngridient);
+        ReferenceIngridients referenceIngridient = new ReferenceIngridients();
+        referenceIngridient.setName(nameIngridient);
+        referenceIngridient.save(referenceIngridient);
+    }
+
+    @Override
+    public void addIngridientOfDrink(ReferenceDrinks drink, ReferenceIngridients ingridients, int qty) {
+        System.out.println("Added new ingridient of drink ");
+    }
+
+    @Override
+    public void delIngridientOfDrink(ReferenceDrinks drink, ReferenceIngridients ingridients, int qty) {
+        System.out.println("Delete ingridient of drink ");
     }
 }

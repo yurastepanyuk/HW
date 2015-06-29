@@ -1,8 +1,6 @@
 package day6.DrinksMenu.Reference;
 
-/**
- * Created by stepanyuk on 24.06.2015.
- */
+
 public abstract class Reference implements ReferenceMethods {
 
     private int id;
@@ -11,9 +9,9 @@ public abstract class Reference implements ReferenceMethods {
     @Override
     public void save(Reference r) {
         if (r instanceof ReferenceDrinks){
-            System.out.println("Saving " + r);
+            System.out.println("Saving ");
         }else if (r instanceof ReferenceIngridients){
-            System.out.println("Saving " + r);
+            System.out.println("Saving ");
         }
     }
 

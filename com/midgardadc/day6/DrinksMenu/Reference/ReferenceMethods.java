@@ -1,8 +1,6 @@
 package day6.DrinksMenu.Reference;
 
-/**
- * Created by stepanyuk on 24.06.2015.
- */
+
 public interface ReferenceMethods {
 
     void save(Reference r);

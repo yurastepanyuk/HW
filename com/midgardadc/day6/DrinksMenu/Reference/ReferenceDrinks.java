@@ -1,12 +1,17 @@
 package day6.DrinksMenu.Reference;
 
-/**
- * Created by stepanyuk on 24.06.2015.
- */
+
 public class ReferenceDrinks extends Reference {
 
     public ReferenceDrinks() {
     }
+
+//    @Override
+//    public ReferenceDrinks newObject() {
+//        System.out.println("Created new Drink");
+//        ReferenceDrinks rd = new ReferenceDrinks();
+//        return rd;
+//    }
 
     @Override
     public ReferenceDrinks[] getAllData() {
@@ -17,4 +22,8 @@ public class ReferenceDrinks extends Reference {
     public Reference getObjectById() {
         return null;
     }
+
+
+
+
 }
