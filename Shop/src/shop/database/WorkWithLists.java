@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 //Soderzhit tables and methods rabotu s DB
-public class WorkWithLists implements DB {
+public class WorkWithLists implements DB, QueryToDB {
 	
 	//Spravo4niki
 	private List<AutoParts>	products;
@@ -155,5 +155,13 @@ public class WorkWithLists implements DB {
 	@Override
 	public Connection getConnection() {
 		return null;
+	}
+
+	@Override
+	public Integer addNewRecord_(Object object) {
+
+		addNewRecord(object);
+
+		return getNewId(object);
 	}
 }

@@ -18,7 +18,7 @@ public class AutoParts extends Reference {
 		super(shop);
 	}
 
-//	@Override
+	//	@Override
 //	public AutoParts getObjectById(int id) {
 //		return serviceMethod.getReferenceObjectById(id, this.getClass());
 //	}

@@ -5,12 +5,19 @@ import shop.reference.AutoParts;
 
 public class BalancesAutoParts extends Balances {
 
+	private int idBalancesAutoParts;
 	private AutoParts autoParts;
-	private int idAutoParts;
 	private int qty;
 
 	public BalancesAutoParts(Shop shop) {
 		super(shop);
+	}
+
+	public BalancesAutoParts(Shop shop, int idBalancesAutoParts, AutoParts autoParts, int qty) {
+		super(shop);
+		this.idBalancesAutoParts = idBalancesAutoParts;
+		this.autoParts = autoParts;
+		this.qty = qty;
 	}
 
 	//GETTERS AND SETTERS *****************************************
@@ -21,12 +28,6 @@ public class BalancesAutoParts extends Balances {
 	public AutoParts getAutoParts() {
 		return autoParts;
 	}
-	public int getIdAutoParts() {
-		return idAutoParts;
-	}
-	public void setIdAutoParts(int idAutoParts) {
-		this.idAutoParts = idAutoParts;
-	}
 	public int getQty() {
 		return qty;
 	}
@@ -34,4 +35,11 @@ public class BalancesAutoParts extends Balances {
 		this.qty = qty;
 	}
 
+	public int getidBalancesAutoParts() {
+		return idBalancesAutoParts;
+	}
+
+	public void setidBalancesAutoParts(int balancesAutoParts) {
+		this.idBalancesAutoParts = balancesAutoParts;
+	}
 }

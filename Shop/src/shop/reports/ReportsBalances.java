@@ -16,7 +16,7 @@ public class ReportsBalances extends Reports {
 		List<BalancesAutoParts> balancesAutoPartses = (List<BalancesAutoParts>) shop.getDb().getDataFromTable(BalancesAutoParts.class);
 		
 		for (BalancesAutoParts balancesAutoParts : balancesAutoPartses) {
-			int idAutoParts = balancesAutoParts.getIdAutoParts();
+			int idAutoParts = balancesAutoParts.getAutoParts().getId();
 			
 			//AutoParts autoParts = new AutoParts(shop).getObjectById(idAutoParts);
 			AutoParts autoParts = serviceMethodReference.getReferenceObjectById(idAutoParts, AutoParts.class);

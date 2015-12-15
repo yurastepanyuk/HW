@@ -9,7 +9,6 @@ import shop.reference.AutoParts;
  */
 public class Prices extends Information implements MethodsPrices {
 
-	private int				idPrice;
 	private AutoParts		autoParts;
 	private int 			idAutoParts;
 	private float 			prise;
@@ -80,11 +79,4 @@ public class Prices extends Information implements MethodsPrices {
 		return autoParts;
 	}
 
-	public int getIdPrice() {
-		return idPrice;
-	}
-
-	public void setIdPrice(int idPrice) {
-		this.idPrice = idPrice;
-	}
 }

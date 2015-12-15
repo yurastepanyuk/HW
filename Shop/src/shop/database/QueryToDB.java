@@ -1,6 +1,6 @@
 package shop.database;
 
-public class QueryToDB {
+public interface QueryToDB {
 
     public static final String GET_ALL_DATA_ON_AUTOPARTS           = "SELECT id, name, catalognumber, categoriya FROM dbo_autoparts.autoparts";
     public static final String GET_ALL_DATA_ON_CLIENT              = "SELECT id, name, inn FROM dbo_autoparts.clients";
@@ -43,6 +43,6 @@ public class QueryToDB {
 	
 	public static final String GET_PRICES_BY_AUTOPARTS_CATEGORY_ID   = "SELECT * FROM dbo_autoparts.prices WHERE autoparts_id = ? AND kategoriya_cena = ?";
 	public static final String GET_BALANCEAUTOPARTS_BY_AUTOPARTS_ID  = "SELECT * FROM dbo_autoparts.balance_auto_parts WHERE autoparts_id = ?";
-
+	public static final String GET_AUTOPART_BY_CATALOGNUMBER		 = "SELECT * FROM dbo_autoparts.autoparts WHERE catalognumber = ?";
 
 }

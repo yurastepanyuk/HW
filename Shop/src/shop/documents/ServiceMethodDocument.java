@@ -2,6 +2,7 @@ package shop.documents;
 
 import shop.Shop;
 import shop.balances.BalancesAutoParts;
+import shop.database.WorkWithLists;
 import shop.enums.CategoryPrice;
 import shop.reference.AutoParts;
 import shop.reference.Client;
@@ -47,20 +48,28 @@ public class ServiceMethodDocument {
         int newId = shop.getDb().getNewId(document);
         document.setId(newId);
 
+        //for MySQL
         if (document.getDateDoc() == null) {
             document.setDateDoc(new Date());
         }
-
+        //for ListDB
         if (document.getDate() == 0){
             document.setDate(shop.getCurrentDate());
         }
 
-        shop.getDb().addNewRecord(document);
+        if (document.getId() == 0 || shop.getDb() instanceof WorkWithLists) {
+            shop.getDb().addNewRecord_(document);
 
-        if (document instanceof Shopping) {
-            addBalanceAutoPart(document);
-        } else if (document instanceof Sale) {
-            lessBalanceAutoPart(document);
+            if (shop.getDb() instanceof WorkWithLists) {
+
+                if (document instanceof Shopping) {
+                    addBalanceAutoPart(document);
+                } else if (document instanceof Sale) {
+                    lessBalanceAutoPart(document);
+                }
+
+            }
+
         }
 
     };
@@ -74,10 +83,7 @@ public class ServiceMethodDocument {
             BalancesAutoParts balanceAS = getRecordByAutoParts(docum.getAutoParts());
 
             if (balanceAS == null) {
-                balanceAS = new BalancesAutoParts(shop);
-                balanceAS.setAutoParts(docum.getAutoParts());
-                balanceAS.setIdAutoParts(docum.getIdAutoParts());
-                balanceAS.setQty(docum.getQty());
+                balanceAS = new BalancesAutoParts(shop, 0, docum.getAutoParts(), docum.getQty());
                 balanceAS.save();
             } else {
                 balanceAS.setQty(balanceAS.getQty() +  docum.getQty());
@@ -98,7 +104,6 @@ public class ServiceMethodDocument {
             if (balanceAS == null) {
                 balanceAS = new BalancesAutoParts(shop);
                 balanceAS.setAutoParts(docum.getAutoParts());
-                balanceAS.setIdAutoParts(docum.getIdAutoParts());
                 balanceAS.setQty((-1)*docum.getQty());
                 balanceAS.save();
             } else {
@@ -111,7 +116,9 @@ public class ServiceMethodDocument {
 
     private BalancesAutoParts getRecordByAutoParts(AutoParts autoParts) {
 
-        for (BalancesAutoParts element : (List<BalancesAutoParts>)shop.getDb().getDataFromTable(BalancesAutoParts.class)) {
+        List<BalancesAutoParts> balancesAutoPartsList = (List<BalancesAutoParts>)shop.getDb().getDataFromTable(BalancesAutoParts.class);
+
+        for (BalancesAutoParts element : balancesAutoPartsList) {
 
             if (element.getAutoParts().equals(autoParts)) {
                 return element;
@@ -128,7 +135,7 @@ public class ServiceMethodDocument {
 
         for (BalancesAutoParts element : balancesAutoPartses) {
 
-            if (element.getIdAutoParts() == id) {
+            if (element.getAutoParts().getId() == id) {
                 return element;
             }
 

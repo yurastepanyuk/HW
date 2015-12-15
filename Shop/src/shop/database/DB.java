@@ -10,7 +10,9 @@ public interface DB {
 
     public <T> List<?> getDataFromTable(Class<T> cls);
 
-    public void addNewRecord(Object object);
+//    public void addNewRecord(Object object);
+
+    public Integer addNewRecord_(Object object);
 
     public void updateRecord(Object object);
 
@@ -24,6 +26,9 @@ public interface DB {
 
     public int getNewId(Object object);
 
+    //public void updateResources(Object object);
+
     public Connection getConnection();
+
 
 }

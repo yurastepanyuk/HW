@@ -14,7 +14,7 @@ public class ServiceMethodBalance {
     }
 
     public void save(Balances balance){
-        shop.getDb().addNewRecord(balance);
+        shop.getDb().addNewRecord_(balance);
     }
 
 }

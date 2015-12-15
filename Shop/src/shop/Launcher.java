@@ -5,10 +5,10 @@ import shop.gui.TransactSellUI;
 
 //Inicializaciya rabotu
 public class Launcher {
-	
-	public static void main(String[] args) throws Exception {
 
-//		SplashScreen splashScreen = SplashScreen.getSplashScreen();
+	public static void main(String[] args) throws Exception{
+
+		//		SplashScreen splashScreen = SplashScreen.getSplashScreen();
 //		Thread.sleep(1000);
 
 //		Graphics2D graphics2D = splashScreen.createGraphics();
@@ -23,7 +23,7 @@ public class Launcher {
 		shop.initialisation();
 
 		TransactSellUI transactSellUI = new TransactSellUI(shop);
-		
+
 	}
 
 }

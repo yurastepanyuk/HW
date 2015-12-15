@@ -65,9 +65,9 @@ public class Shop {
 
 		createClients();
 
-		createShops();
-
-		cerateSales();
+//		createShops();
+//
+//		cerateSales();
 
 		createReports();
 	}
@@ -90,10 +90,10 @@ public class Shop {
 		reportsDocuments.qtySaleForDay(7);
 
 		System.out.println("******************************");
-		reportsDocuments.transactionListForDay(getCurrentDate() - 4);
+		reportsDocuments.transactionListForDay(getCurrentDate()-1);
 
 		System.out.println("******************************");
-		reportsDocuments.totalTransactionListForDay(getCurrentDate() - 4);
+		reportsDocuments.totalTransactionListForDay(getCurrentDate()-1);
 
 		System.out.println("******************************");
 		ReportsReference reportsReference = new ReportsReference();
@@ -201,16 +201,20 @@ public class Shop {
 	private void createAutoPartsAndPrices() {
 
 		AutoParts ap = new AutoParts(this);
+		Prices prc;
 
 		ap.setShop(this);
 		ap.setCatalogNumber("450 05 02");
 		ap.setCategoriya(Category.ELECTROOBORUDOVANIE);
 		ap.setName("Akkumulyator 50 A/Ch Evro");
 		ap.save();
-		Prices prc = new Prices(this);
-		prc.setPrice(ap, (float)1000.50, CategoryPrice.ROZNITSA);
-		prc = new Prices(this);
-		prc.setPrice(ap, (float)1100.00, CategoryPrice.ROZNITSA);
+
+		if (ap.getId() != 0) {
+			prc = new Prices(this);
+			prc.setPrice(ap, (float)1000.50, CategoryPrice.ROZNITSA);
+			prc = new Prices(this);
+			prc.setPrice(ap, (float)1100.00, CategoryPrice.ROZNITSA);
+		}
 
 		ap = new AutoParts(this);
 		ap.setShop(this);
@@ -218,8 +222,10 @@ public class Shop {
 		ap.setCategoriya(Category.ELECTROOBORUDOVANIE);
 		ap.setName("Lamp H3 12V 55W Pure Light");
 		ap.save();
-		prc = new Prices(this);
-		prc.setPrice(ap, (float)43.26, CategoryPrice.ROZNITSA);
+		if (ap.getId() != 0) {
+			prc = new Prices(this);
+			prc.setPrice(ap, (float) 43.26, CategoryPrice.ROZNITSA);
+		}
 
 		ap = new AutoParts(this);
 		ap.setShop(this);
@@ -227,8 +233,10 @@ public class Shop {
 		ap.setCategoriya(Category.DVIGATEL);
 		ap.setName("Remen GRM 111SP254H (DAYCO 111SP254H)");
 		ap.save();
-		prc = new Prices(this);
-		prc.setPrice(ap, (float)109.50, CategoryPrice.ROZNITSA);
+		if (ap.getId() != 0) {
+			prc = new Prices(this);
+			prc.setPrice(ap, (float) 109.50, CategoryPrice.ROZNITSA);
+		}
 
 		ap = new AutoParts(this);
 		ap.setShop(this);
@@ -236,17 +244,21 @@ public class Shop {
 		ap.setCategoriya(Category.HODOVAYA);
 		ap.setName("Amortisator zadnij right");
 		ap.save();
-		prc = new Prices(this);
-		prc.setPrice(ap, (float)450.00, CategoryPrice.ROZNITSA);
+		if (ap.getId() != 0) {
+			prc = new Prices(this);
+			prc.setPrice(ap, (float) 450.00, CategoryPrice.ROZNITSA);
+		}
 
 		ap = new AutoParts(this);
 		ap.setShop(this);
-		ap.setCatalogNumber("GTX 10W-40 4ë");
+		ap.setCatalogNumber("GTX 10W-40 4 l");
 		ap.setCategoriya(Category.OIL);
 		ap.setName("Motor Castrol GTX 10W-40 A3/B4");
 		ap.save();
-		prc = new Prices(this);
-		prc.setPrice(ap, (float)750.00, CategoryPrice.ROZNITSA);
+		if (ap.getId() != 0) {
+			prc = new Prices(this);
+			prc.setPrice(ap, (float) 750.00, CategoryPrice.ROZNITSA);
+		}
 
 		ap = new AutoParts(this);
 		ap.setShop(this);
@@ -254,8 +266,10 @@ public class Shop {
 		ap.setCategoriya(Category.SHINA);
 		ap.setName("Shina 195/60R15 88V SP Sport 01 Dunlop");
 		ap.save();
-		prc = new Prices(this);
-		prc.setPrice(ap, (float)1020.80, CategoryPrice.ROZNITSA);
+		if (ap.getId() != 0) {
+			prc = new Prices(this);
+			prc.setPrice(ap, (float) 1020.80, CategoryPrice.ROZNITSA);
+		}
 
 	}
 

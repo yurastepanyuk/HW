@@ -91,8 +91,24 @@ public class ServiceMethodReference implements ServiceMethodRef {
                 if (shop.getDb().getClass().getSimpleName().equals("WorkWithLists")) {
                     int newId = shop.getDb().getNewId(object);
                     object.setId(newId);
+                    shop.getDb().addNewRecord_(object);
+                } else {
+                    Integer idObject =  shop.getDb().addNewRecord_(object);
+
+                    if (idObject == null && object instanceof AutoParts) {
+                        Object[] filter = new Object[]{((AutoParts)object).getCatalogNumber(), "catalogNumber"};
+                        AutoParts autoParts = shop.getDb().getResourceByObject(filter, AutoParts.class);
+
+                        if (autoParts != null) {
+                            //object = autoParts;
+                            idObject = autoParts.getId();
+                        }
+
+                    }
+
+                    object.setId(idObject==null?0:idObject);
                 }
-                shop.getDb().addNewRecord(object);
+
             } else {
                 shop.getDb().updateRecord(object);
             }

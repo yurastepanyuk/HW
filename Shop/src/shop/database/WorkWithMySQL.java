@@ -3,6 +3,7 @@ package shop.database;
 import com.mysql.fabric.jdbc.FabricMySQLDriver;
 import shop.Shop;
 import shop.balances.BalancesAutoParts;
+import shop.documents.Document;
 import shop.documents.Sale;
 import shop.documents.Shopping;
 import shop.enums.Category;
@@ -11,6 +12,7 @@ import shop.inforamation.Prices;
 import shop.reference.AutoParts;
 import shop.reference.Client;
 
+import javax.management.StandardEmitterMBean;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.text.DecimalFormat;
@@ -26,6 +28,8 @@ public class WorkWithMySQL implements DB  {
     private final static String NAME    = "sa";
     private final static String PASS    = "sasa";
 
+    Integer lastID = 0;
+
     public WorkWithMySQL(Shop shop) {
         this.shop = shop;
     }
@@ -36,6 +40,12 @@ public class WorkWithMySQL implements DB  {
             Driver driver = new FabricMySQLDriver();
             DriverManager.registerDriver(driver);
             connection = DriverManager.getConnection(URL, NAME, PASS);
+
+            Statement statement = connection.createStatement();
+//            statement.execute("SET character_set_client='utf8'");
+//            statement.execute("SET character_set_connection='utf8'");
+//              statement.execute("SET collation_connection='utf8'");
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Don't connection to MySQL DB");
@@ -64,22 +74,24 @@ public class WorkWithMySQL implements DB  {
     }
 
     @Override
-    public void addNewRecord(Object object) {
+    public Integer addNewRecord_(Object object) {
         String nameTable = object.getClass().getSimpleName();
 
         if (nameTable.equals("AutoParts")) {
-            addNewAutoParts((AutoParts)object);
+            return addNewAutoParts((AutoParts) object);
         } else if (nameTable.equals("Client")){
-            addNewClient((Client)object);
+            return addNewClient((Client) object);
         } else if (nameTable.equals("Shopping")){
-            addNewShopping((Shopping)object);
+            return addNewShopping((Shopping) object);
         } else if (nameTable.equals("Sale")){
-            addNewSale((Sale) object);
+            return addNewSale((Sale) object);
         } else if (nameTable.equals("BalancesAutoParts")){
-            addNewBalancesAutoParts((BalancesAutoParts) object);
+            //return addNewBalancesAutoParts((BalancesAutoParts) object);
         } else if (nameTable.equals("Prices")){
-            addNewPrices((Prices) object);
+            return addNewPrices((Prices) object);
         }
+
+        return null;
 
     }
 
@@ -97,12 +109,35 @@ public class WorkWithMySQL implements DB  {
         } else if (nameTable.equals("Sale")){
             updateRecordSale((Sale) object);
         } else if (nameTable.equals("BalancesAutoParts")){
-            updateRecordBalancesAutoParts((BalancesAutoParts) object);
+            //updateRecordBalancesAutoParts((BalancesAutoParts) object);
         } else if (nameTable.equals("Prices")){
             updateRecordPrices((Prices) object);
         }
 
     }
+
+//    @Override
+//    public void updateResources(Object object) {
+//
+//        String nameTable = object.getClass().getSimpleName();
+//
+//        if (nameTable.equals("BalancesAutoParts")) {
+//
+//            try(PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.UPDATE_BALANCEAUTOPARTS)){
+//                //"UPDATE dbo_autoparts.balance_auto_parts SET qty = ?,autoparts_id = ? WHERE autoparts_id = ?"
+//                preparedStatement.setInt(1, ((BalancesAutoParts) object).getQty());
+//                preparedStatement.setInt(2, ((BalancesAutoParts)object).getAutoParts().getId());
+//                preparedStatement.setInt(3, ((BalancesAutoParts)object).getAutoParts().getId());
+//
+//                preparedStatement.executeUpdate();
+//
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }
+//
+//    }
 
     @Override
     public void deleteRecord(Object object) {
@@ -200,17 +235,27 @@ public class WorkWithMySQL implements DB  {
 				return (T)getPriceByAutoPartsAndCategory(((AutoParts)filterObject).getId(), filterCategory.getID());
 			}
 		
-		}
-		
-		return null;
+		} else if (nameReturnType.equals("AutoParts")) {
+
+            if (filterObject instanceof String){
+
+                String nameField = (String)object[1];
+
+                if (nameField.equals("catalogNumber")) {
+                    return (T)getAutoPartsByCatalogNumber((String)filterObject);
+                }
+
+            }
+
+        }
+
+        return null;
 	
 	}
 
     //GET ALL
 
     private List<Prices> getAllDataOnPrices() {
-//        Statement statement = null;
-//        Statement statementAutoParts = null;
         List<Prices> resultList = new ArrayList<>();
 
         try(Statement statement = getConnection().createStatement(); Statement statementAutoParts = connection.createStatement();) {
@@ -254,16 +299,86 @@ public class WorkWithMySQL implements DB  {
 
         }
 
-
         return resultList;
     }
 
     private List<BalancesAutoParts> getAllDataOnBalancesAutoParts() {
-        return null;
+
+        List<BalancesAutoParts> resultList = new ArrayList<>();
+
+        try(Statement statement = connection.createStatement(); Statement statementAutoParts = connection.createStatement()){
+
+            ResultSet resultSet = statement.executeQuery(QueryToDB.GET_ALL_DATA_ON_BALANCEAUTOPARTS);
+
+            while (resultSet.next()){
+
+                BalancesAutoParts balancesAutoParts = new BalancesAutoParts(shop);
+
+                balancesAutoParts.setidBalancesAutoParts(resultSet.getInt("balance_id"));
+                balancesAutoParts.setQty(resultSet.getInt("qty"));
+
+                String queryAutoParts = QueryToDB.GET_BY_ID_AUTOPARTS.replace("?", Integer.toString(resultSet.getInt("autoparts_id")));
+
+                ResultSet resultSetAutoParts = statementAutoParts.executeQuery(queryAutoParts);
+
+                AutoParts autoPart = null;
+
+                while(resultSetAutoParts.next()){
+                    autoPart = new AutoParts(shop);
+                    autoPart.setId(resultSetAutoParts.getInt("id"));
+                    autoPart.setName(resultSetAutoParts.getString("name"));
+                    autoPart.setCatalogNumber(resultSetAutoParts.getString("catalognumber"));
+                    autoPart.setCategoriya(Category.getById(resultSetAutoParts.getInt("categoriya")));
+
+                    break;
+                }
+
+                balancesAutoParts.setAutoParts(autoPart);
+
+                resultList.add(balancesAutoParts);
+
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+
+        }
+
+        return resultList;
     }
 
     private List<Sale> getAllDataOnSale() {
-        return null;
+
+        List<Sale> result = new ArrayList<>();
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.GET_ALL_DATA_ON_SALE)){
+ //"SELECT TitleSales.id, TitleSales.date, TitleSales.doc_num, TitleSales.clients_id, Line.idsales_line,
+ // Line.docs_sales_id, Line.autoparts_id, Line.qty, Line.price FROM dbo_autoparts.docs_sales AS TitleSales
+ // LEFT JOIN dbo_autoparts.sales_line AS Line ON TitleSales.id = Line.docs_sales_id";
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()){
+
+                Sale sale = new Sale(shop);
+                sale.setId(resultSet.getInt("id"));
+                sale.setAutoParts(getByIdAutoParts(resultSet.getInt("autoparts_id")));
+                sale.setCena(resultSet.getFloat("price"));
+                sale.setQty((byte)resultSet.getInt("qty"));
+                sale.setClient(getByIdClient(resultSet.getInt("clients_id")));
+                sale.setNumDocument(resultSet.getString("doc_num"));
+                sale.setDateDoc(resultSet.getDate("date"));
+                sale.setDate((int)(resultSet.getDate("date").getTime()/(1000*60*60*24)));
+
+                result.add(sale);
+
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 
     private List<Shopping> getAllDataOnShopping() {
@@ -324,8 +439,9 @@ public class WorkWithMySQL implements DB  {
 
     // ADD NEW
 
-    public void addNewAutoParts(AutoParts autoParts) {
-//        PreparedStatement statement = null;
+    public Integer addNewAutoParts(AutoParts autoParts) {
+
+        Integer result = null;
 
         try(PreparedStatement statement = connection.prepareStatement(QueryToDB.ADD_NEW_AUTOPARTS);) {
 
@@ -333,24 +449,61 @@ public class WorkWithMySQL implements DB  {
             statement.setString(2, autoParts.getCatalogNumber());
             statement.setInt(3, autoParts.getCategoriya().getID());
             statement.executeUpdate();
+
+            Statement statementLastID = connection.createStatement();
+            ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
+
+            while (resultSetLastID.next()){
+                result = resultSetLastID.getInt(1);
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
-            return;
+            result = null;
         } finally {
-//            try {
-//                statement.close();
-//            } catch (SQLException e) {
-//                //
-//            }
+            return result;
         }
 
     }
 
-    public void addNewPrices(Prices prices) {
+    public Integer addNewPrices(Prices prices) {
+        Integer result = null;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.ADD_NEW_PRICES);
+            PreparedStatement preparedStatementCheck = connection.prepareStatement(QueryToDB.GET_PRICES_BY_AUTOPARTS_CATEGORY_ID)){
+
+            preparedStatementCheck.setInt(1, prices.getIdAutoParts() );
+            preparedStatementCheck.setInt(2, prices.getKategoriya().getID());
+
+            ResultSet resultSetCheck = preparedStatementCheck.executeQuery();
+
+            if (resultSetCheck.next()) {
+                result = resultSetCheck.getInt(1);
+                throw new RuntimeException();
+            }
+
+            preparedStatement.setFloat(1, prices.getPrise());
+            preparedStatement.setInt(2, prices.getKategoriya().getID());
+            preparedStatement.setInt(3, prices.getIdAutoParts());
+
+            preparedStatement.executeUpdate();
+
+            Statement statementLastID = connection.createStatement();
+            ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
+
+            while (resultSetLastID.next()){
+                result = resultSetLastID.getInt(1);
+            }
+
+        }finally {
+            return result;
+        }
 
     }
 
-    public void addNewClient(Client client) {
+    public Integer addNewClient(Client client) {
+
+        Integer result = null;
 
         try(PreparedStatement statement = connection.prepareStatement(QueryToDB.ADD_NEW_CLIENT);
             Statement statementChek = connection.createStatement()){
@@ -358,6 +511,7 @@ public class WorkWithMySQL implements DB  {
             ResultSet resultSetCheck = statementChek.executeQuery((QueryToDB.GET_BY_NAME_CLIENT).replace("?", "'" + client.getName() + "'"));
 
             while (resultSetCheck.next()){
+                result = resultSetCheck.getInt("id");
                 throw new SQLException();
             }
 
@@ -369,23 +523,157 @@ public class WorkWithMySQL implements DB  {
             }
 
             statement.executeUpdate();
+
+            Statement statementLastID = connection.createStatement();
+            ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
+
+            while (resultSetLastID.next()){
+                result = resultSetLastID.getInt(1);
+            }
+
         } catch (SQLException e) {
             e.printStackTrace();
-            return;
+            return null;
         } finally {
-            //
+            return result;
         }
     }
 
-    public void addNewShopping(Shopping shopping) {
+    public Integer addNewShopping(Shopping shopping) {
+        Integer result = null;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.ADD_NEW_SHOPPING);
+            Statement statementCheck = connection.createStatement();
+            PreparedStatement preparedStatementLine = connection.prepareStatement(QueryToDB.ADD_NEW_SHOPPING_LINE)) {
+            //"INSERT INTO dbo_autoparts.docs_shopping (date, doc_num, clients_id) VALUES (?,?,?)";
+            //"INSERT INTO dbo_autoparts.shopping_line (qty, price, docs_shopping_id, autoparts_id) VALUES (?,?,?,?)"
+
+            String nameDoc = shopping.getNumDocument();
+
+            if (nameDoc == null || nameDoc.isEmpty()) {
+                nameDoc = getNewNumDocument(shopping);
+            }
+
+            shopping.setNumDocument(nameDoc);
+
+            String queryCheck = QueryToDB.GET_BY_NAME_SHOPPING.replace("?", "'" + nameDoc + "'");
+
+            ResultSet resultSetCheck = statementCheck.executeQuery(queryCheck);
+
+            if (resultSetCheck.next()) {
+                throw new SQLException();
+            }
+
+			preparedStatement.setDate(  1, new Date(shopping.getDateDoc().getTime()));
+            preparedStatement.setString(2, nameDoc);
+            preparedStatement.setInt(   3, shopping.getClient().getId());
+
+            preparedStatement.executeUpdate();
+
+            Statement statementLastID = connection.createStatement();
+            ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
+
+            while (resultSetLastID.next()){
+                result = resultSetLastID.getInt(1);
+            }
+
+			preparedStatementLine.setInt(1, shopping.getQty());
+			preparedStatementLine.setFloat(2, shopping.getCena());
+			preparedStatementLine.setInt(3, result);
+			preparedStatementLine.setInt(4, shopping.getAutoParts().getId());
+			
+			preparedStatementLine.executeUpdate();
+
+            BalancesAutoParts balancesAutoPartsChange = new BalancesAutoParts(shop, 0, shopping.getAutoParts(), shopping.getQty());
+            updateRecordBalancesAutoParts(balancesAutoPartsChange, true);
+			
+		} catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            return result;
+        }
 
     }
 
-    public void addNewBalancesAutoParts(BalancesAutoParts balancesAutoParts) {
+    public Integer addNewBalancesAutoParts(BalancesAutoParts balancesAutoParts, boolean add) {
+        Integer result = null;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.ADD_NEW_BALANCEAUTOPARTS);
+            Statement statement = connection.createStatement()){
+            //"INSERT INTO dbo_autoparts.balance_auto_parts (qty,autoparts_id) VALUES (?,?)"
+
+            preparedStatement.setInt(1, balancesAutoParts.getQty() * (add?1:-1));
+            preparedStatement.setInt(2, balancesAutoParts.getAutoParts().getId());
+
+            preparedStatement.executeUpdate();
+
+            ResultSet resultSetLastId = statement.executeQuery("SELECT last_insert_id()");
+
+            if (resultSetLastId.next()) {
+                result = resultSetLastId.getInt(1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            return result;
+        }
 
     }
 
-    public void addNewSale(Sale sale) {
+    public Integer addNewSale(Sale sale) {
+        Integer result = null;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.ADD_NEW_SALE);
+             Statement statementCheck = connection.createStatement();
+             PreparedStatement preparedStatementLine = connection.prepareStatement(QueryToDB.ADD_NEW_SALE_LINE)) {
+            //"INSERT INTO dbo_autoparts.docs_sales (date, doc_num, clients_id) VALUES (?,?,?)";
+            //"INSERT INTO dbo_autoparts.sales_line (qty, price, docs_sales_id, autoparts_id) VALUES (?,?,?,?)"
+
+            String nameDoc = sale.getNumDocument();
+
+            if (nameDoc == null || nameDoc.isEmpty()) {
+                nameDoc = getNewNumDocument(sale);
+            }
+
+            sale.setNumDocument(nameDoc);
+
+            String queryCheck = QueryToDB.GET_BY_NAME_SALE.replace("?", "'" + nameDoc + "'");
+
+            ResultSet resultSetCheck = statementCheck.executeQuery(queryCheck);
+
+            if (resultSetCheck.next()) {
+                throw new SQLException();
+            }
+
+            preparedStatement.setDate(  1, new Date(sale.getDateDoc().getTime()));
+            preparedStatement.setString(2, nameDoc);
+            preparedStatement.setInt(   3, sale.getClient().getId());
+
+            preparedStatement.executeUpdate();
+
+            Statement statementLastID = connection.createStatement();
+            ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
+
+            while (resultSetLastID.next()){
+                result = resultSetLastID.getInt(1);
+            }
+
+            preparedStatementLine.setInt(1, sale.getQty());
+            preparedStatementLine.setFloat(2, sale.getCena());
+            preparedStatementLine.setInt(3, result);
+            preparedStatementLine.setInt(4, sale.getAutoParts().getId());
+
+            preparedStatementLine.executeUpdate();
+
+            BalancesAutoParts balancesAutoPartsChange = new BalancesAutoParts(shop, 0, sale.getAutoParts(), sale.getQty());
+            updateRecordBalancesAutoParts(balancesAutoPartsChange, false);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            return result;
+        }
 
     }
 
@@ -404,7 +692,38 @@ public class WorkWithMySQL implements DB  {
 
     }
 
-    public void updateRecordBalancesAutoParts(BalancesAutoParts balancesAutoParts) {
+    public void updateRecordBalancesAutoParts(BalancesAutoParts balancesAutoParts, boolean add) {
+
+        Integer result;
+
+        BalancesAutoParts balancesAutoPartsCurrent = getBalanceByAutoParts(balancesAutoParts.getAutoParts().getId());
+
+        if (balancesAutoPartsCurrent == null) {
+            result = addNewBalancesAutoParts(balancesAutoParts, add);
+            balancesAutoPartsCurrent.setidBalancesAutoParts(result);
+        } else {
+
+            if (add) {
+                balancesAutoPartsCurrent.setQty(balancesAutoPartsCurrent.getQty() +  balancesAutoParts.getQty());
+            } else {
+                balancesAutoPartsCurrent.setQty(balancesAutoPartsCurrent.getQty() -  balancesAutoParts.getQty());
+            }
+
+            //updateResources(balancesAutoPartsCurrent);
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.UPDATE_BALANCEAUTOPARTS)){
+            //"UPDATE dbo_autoparts.balance_auto_parts SET qty = ?,autoparts_id = ? WHERE autoparts_id = ?"
+                preparedStatement.setInt(1, balancesAutoPartsCurrent.getQty());
+                preparedStatement.setInt(2, balancesAutoPartsCurrent.getAutoParts().getId());
+                preparedStatement.setInt(3, balancesAutoPartsCurrent.getAutoParts().getId());
+
+                preparedStatement.executeUpdate();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        }
 
     }
 
@@ -446,7 +765,28 @@ public class WorkWithMySQL implements DB  {
     //GET BY ID
 
     public AutoParts getByIdAutoParts(int id) {
-        return null;
+
+        AutoParts autoParts = null;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.GET_BY_ID_AUTOPARTS)){
+            //"SELECT * FROM dbo_autoparts.autoparts WHERE id = ?"
+            preparedStatement.setInt(1,id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                autoParts = new AutoParts(shop);
+                autoParts.setId(resultSet.getInt("id"));
+                autoParts.setName(resultSet.getString("name"));
+                autoParts.setCatalogNumber(resultSet.getString("catalognumber"));
+                autoParts.setCategoriya(Category.getById(resultSet.getInt("categoriya")));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return autoParts;
     }
 
 
@@ -456,7 +796,25 @@ public class WorkWithMySQL implements DB  {
 
 
     public Client getByIdClient(int id) {
-        return null;
+
+        Client client = null;
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.GET_BY_ID_CLIENT)){
+        //"SELECT * FROM dbo_autoparts.clients WHERE id = ?"; (name,inn)
+            preparedStatement.setInt(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                client = new Client(shop);
+                client.setId(resultSet.getInt("id"));
+                client.setName(resultSet.getString("name"));
+                client.setInn(resultSet.getInt("inn"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            return client;
+        }
+
     }
 
 
@@ -508,23 +866,113 @@ public class WorkWithMySQL implements DB  {
 
     @Override
     public int getNewId(Object object) {
-        return 0;
+
+        Integer result = new Integer(lastID);
+        lastID = 0;
+
+        return result;
     }
 
 
     //GET RESOURCES BY OBJECTS
 
     private BalancesAutoParts getBalanceByAutoParts(int idAutoParts){
-        return null;
+
+        BalancesAutoParts balancesAutoParts = null;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.GET_BALANCEAUTOPARTS_BY_AUTOPARTS_ID)){
+            //"SELECT * FROM dbo_autoparts.balance_auto_parts WHERE autoparts_id = ?"
+            preparedStatement.setInt(1, idAutoParts);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                balancesAutoParts = new BalancesAutoParts(shop);
+                balancesAutoParts.setidBalancesAutoParts(resultSet.getInt("balance_id"));
+                balancesAutoParts.setQty(resultSet.getInt("qty"));
+                balancesAutoParts.setAutoParts(getByIdAutoParts(resultSet.getInt("autoparts_id")));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return balancesAutoParts;
     }
 
     private Prices getPriceByAutoPartsAndCategory(int idAutoParts, int idCategoryPrice){
         return null;
     }
 
+    private AutoParts getAutoPartsByCatalogNumber(String filterObject){
+
+        AutoParts result = null;
+
+        try (Statement statement = connection.createStatement()) {
+
+            String query = QueryToDB.GET_AUTOPART_BY_CATALOGNUMBER.replace("?", "'" + filterObject + "'");
+            ResultSet resultSet = statement.executeQuery(query);
+
+            if (resultSet.next()) {
+                result = new AutoParts(shop);
+                result.setId(resultSet.getInt("id"));
+                result.setName(resultSet.getString("name"));
+                result.setCatalogNumber(resultSet.getString("catalognumber"));
+                result.setCategoriya(Category.getById(resultSet.getInt("categoriya")));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            return result;
+        }
+
+    }
 
     @Override
     public Connection getConnection() {
         return connection;
     }
+
+    public String getNewNumDocument(Document docum){
+
+        String result = "";
+
+        if (docum instanceof Shopping) {
+
+            result = "SP-";
+
+            try{
+                Statement statement = connection.createStatement();
+
+                ResultSet resultSet = statement.executeQuery("Select count(shopping.id) from dbo_autoparts.docs_shopping as shopping");
+
+                if (resultSet.next()) {
+                    result += String.valueOf(resultSet.getInt(1));
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } else if (docum instanceof Sale) {
+
+            result = "SL-";
+
+            try{
+                Statement statement = connection.createStatement();
+
+                ResultSet resultSet = statement.executeQuery("Select count(sale.id) from dbo_autoparts.docs_sales as sale");
+
+                if (resultSet.next()) {
+                    result += String.valueOf(resultSet.getInt(1));
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return result;
+    }
+
 }

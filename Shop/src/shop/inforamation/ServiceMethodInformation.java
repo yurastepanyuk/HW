@@ -19,7 +19,23 @@ public class ServiceMethodInformation {
 
     public void save(Information information){
 
-        shop.getDb().addNewRecord(information);
+        if (information instanceof Prices) {
+
+            if (information.getId() == 0) {
+                if (shop.getDb().getClass().getSimpleName().equals("WorkWithLists")) {
+                    shop.getDb().addNewRecord_(information);
+                } else {
+                    Integer idObject =  shop.getDb().addNewRecord_(information);
+                    //int newId = shop.getDb().getNewId(object);
+                    information.setId(idObject);
+                }
+
+            } else {
+                shop.getDb().updateRecord(information);
+            }
+
+        }
+
 
     }
 
@@ -103,7 +119,5 @@ public class ServiceMethodInformation {
 
         return result;
     }
-
-
 
 }

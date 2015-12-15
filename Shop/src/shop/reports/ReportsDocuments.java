@@ -5,6 +5,7 @@ import shop.reference.AutoParts;
 import shop.reference.Client;
 import shop.reports.*;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -51,22 +52,24 @@ public class ReportsDocuments extends Reports {
 		System.out.println("Num P/P" + "    " + "Name of Client" + "    " + "Name of Auto parts" + "    " + "Price" + "    " + "QTY");
 		
 		for (Sale docSale : saleList){
-			int dateDoc = docSale.getDate();
+			Date dateDoc = docSale.getDateDoc();
+
+			int dateInt = (int)(dateDoc.getTime()/(1000*60*60*24));
 			
-			if (dateDoc == day){
+			if (dateInt == day){
 				
 				numPP += 1;
 				
-				int idxClient = docSale.getIdClient();
-				int idxAutoParts = docSale.getIdAutoParts();
+				int idxClient = docSale.getClient().getId();
+				int idxAutoParts = docSale.getAutoParts().getId();
 				float prise = docSale.getCena();
 				int qty = (int)docSale.getQty();
 				
 				//AutoParts autoParts = new AutoParts(shop).getObjectById(idxAutoParts);
-				AutoParts autoParts = serviceMethodReference.getReferenceObjectById(idxAutoParts, AutoParts.class);
-				Client client = new Client(shop).getObjectById(idxClient);
+				//AutoParts autoParts = serviceMethodReference.getReferenceObjectById(idxAutoParts, AutoParts.class);
+				//Client client = new Client(shop).getObjectById(idxClient);
 				
-				System.out.println(numPP + "    " + client.getName() + "    " + autoParts.getName() + "    " + prise + "    " + qty);
+				System.out.println(numPP + "    " + docSale.getClient().getName() + "    " + docSale.getAutoParts().getName() + "    " + prise + "    " + qty);
 				
 							
 			}
