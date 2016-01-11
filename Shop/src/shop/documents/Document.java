@@ -37,8 +37,8 @@ public class Document  extends Transaction implements MethodsDocument {
 	}
 
 	@Override
-	public Sale newSale(Client client, AutoParts autoParts, int qty, float cena) {
-		return serviceMethod.newSale(client, autoParts, qty, cena);
+	public Sale newSale(Client client, AutoParts autoParts, int qty, float cena, boolean save) {
+		return serviceMethod.newSale(client, autoParts, qty, cena, save);
 	}
 
 

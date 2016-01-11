@@ -25,9 +25,20 @@ public class Client extends Reference {
 		return (Client)service.getReferenceObjectById(id, this.getClass());
 	}
 
-	public Client getObjectByName(String name){
+	@Override
+	public boolean equals(Object obj) {
 
-		return (Client)service.getReferenceObjectByName(name, this.getClass());
+		if (obj instanceof Client) {
+			Client chekClient = (Client) obj;
+
+			if (getId() == chekClient.getId() && getName() != null && getName().equals(chekClient.getName())
+					&& getInn() == chekClient.getInn()) {
+				return true;
+			}
+
+		}
+
+		return false;
 	}
 
 	public int getInn() {

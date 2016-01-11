@@ -158,7 +158,7 @@ public class ServiceMethodDocument {
         return documShop;
     }
 
-    public Sale newSale(Client client, AutoParts autoParts, int qty, float cena){
+    public Sale newSale(Client client, AutoParts autoParts, int qty, float cena, boolean save){
 
         Sale docSale = new Sale(shop);
         docSale.setClient(client);
@@ -168,9 +168,37 @@ public class ServiceMethodDocument {
         docSale.setQty((byte)qty);
         docSale.setCena(cena);
         docSale.setDate(shop.getCurrentDate());
-        docSale.save();
+
+        if (save) {
+            docSale.save();
+        }
 
         return docSale;
+    }
+
+    public double getDiscountSummaForSummaSale(float summaSale){
+
+        float discountSumma = 0f;
+
+        float percent = getDiscountPercentForSummaSale(summaSale);
+
+        discountSumma = summaSale * percent/100;
+
+        return discountSumma;
+    }
+
+    public float getDiscountPercentForSummaSale(float summaSale){
+
+        float percent = 0;
+
+        if (summaSale >= 1000f) {
+            percent = 10f;
+        } else if (summaSale >= 500f){
+            percent = 5f;
+        } else {
+            percent = 0.0f;
+        }
+        return percent;
     }
 
 }

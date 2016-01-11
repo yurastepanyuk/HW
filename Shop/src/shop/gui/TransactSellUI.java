@@ -45,9 +45,9 @@ public class TransactSellUI {
     ArrayList<String>   dataForComboBox;
     JComboBox           comboBoxClient;
 
-    private ServiceMethodReference serviceMethodReference;
-    private ServiceMethodDocument serviceMethodDocument;
-    private ServiceMethodInformation serviceMethodInformation;
+//    private ServiceMethodReference serviceMethodReference;
+//    private ServiceMethodDocument serviceMethodDocument;
+//    private ServiceMethodInformation serviceMethodInformation;
 
     public TransactSellUI(Shop shop) {
         this.shop = shop;
@@ -58,9 +58,9 @@ public class TransactSellUI {
         frame.setLocationRelativeTo(null);
         frame.setLayout(new GridBagLayout());
 
-        serviceMethodReference   = new ServiceMethodReference(shop);
-        serviceMethodDocument    = new ServiceMethodDocument(shop);
-        serviceMethodInformation = new ServiceMethodInformation(shop);
+//        serviceMethodReference   = new ServiceMethodReference(shop);
+//        serviceMethodDocument    = new ServiceMethodDocument(shop);
+//        serviceMethodInformation = new ServiceMethodInformation(shop);
 
         JMenuBar menuBar = new JMenuBar();
         JMenu menuAddSale= new JMenu("Sales");
@@ -197,7 +197,7 @@ public class TransactSellUI {
 
                 rbutton = getSelection(buttonGroup);
 
-                client = serviceMethodReference.getReferenceObjectByName(((String) comboBoxClient.getSelectedItem()).trim(), Client.class);
+                client = shop.getServiceMethodReference().getReferenceObjectByName(((String) comboBoxClient.getSelectedItem()).trim(), Client.class);
                 //client = new Client(shop).getObjectByName(((String) comboBoxClient.getSelectedItem()).trim());
 
                 if (client == null){
@@ -205,12 +205,12 @@ public class TransactSellUI {
                     return;
                 }
 
-                autoParts = serviceMethodReference.getReferenceObjectByName(rbutton.getText().trim(), AutoParts.class);
+                autoParts = shop.getServiceMethodReference().getReferenceObjectByName(rbutton.getText().trim(), AutoParts.class);
 
-                float cenaOfSale = serviceMethodInformation.getPriceByGoods(autoParts, CategoryPrice.ROZNITSA)
+                float cenaOfSale = shop.getServiceMethodInformation().getPriceByGoods(autoParts, CategoryPrice.ROZNITSA)
                                    - discount/Byte.valueOf(iQty.getText());
 
-                documSale = serviceMethodDocument.newSale(client, autoParts, Byte.valueOf(iQty.getText()), cenaOfSale);
+                documSale = shop.getServiceMethodDocument().newSale(client, autoParts, Byte.valueOf(iQty.getText()), cenaOfSale, true);
 
 //                documSale = new Sale(shop);
 //                autoParts = new AutoParts(shop).getObjectByName(rbutton.getText().trim());
@@ -261,25 +261,27 @@ public class TransactSellUI {
 
         //AutoParts autoParts = new AutoParts(shop).getObjectByName(rbutton.getText().trim());
 
-        AutoParts autoParts = serviceMethodReference.getReferenceObjectByName(rbutton.getText().trim(), AutoParts.class);
+        AutoParts autoParts = shop.getServiceMethodReference().getReferenceObjectByName(rbutton.getText().trim(), AutoParts.class);
 
-        //float cenaOnPrice = new Prices(shop).getPriceByGoods(autoParts, CategoryPrice.ROZNITSA);
-        float cenaOnPrice = serviceMethodInformation.getPriceByGoods(autoParts, CategoryPrice.ROZNITSA);
+        float cenaOnPrice = shop.getServiceMethodInformation().getPriceByGoods(autoParts, CategoryPrice.ROZNITSA);
         Integer qtySale = Integer.valueOf(iQty.getText().trim());
 
         float sumSale = cenaOnPrice * qtySale;
 
         String percentDiscount = "(0%) ";
 
-        if (sumSale >= 1000f) {
-            discount = sumSale * 0.1f;
-            percentDiscount = "(10%) ";
-        } else if (sumSale >= 500f){
-            discount = sumSale * 0.05f;
-            percentDiscount = "(5%) ";
-        } else {
-            discount = 0.0f;
-        }
+        discount = (float) shop.getServiceMethodDocument().getDiscountSummaForSummaSale(sumSale);
+        percentDiscount = "(" + Float.toString(shop.getServiceMethodDocument().getDiscountPercentForSummaSale(sumSale)) + "%) ";
+
+//        if (sumSale >= 1000f) {
+//            discount = sumSale * 0.1f;
+//            percentDiscount = "(10%) ";
+//        } else if (sumSale >= 500f){
+//            discount = sumSale * 0.05f;
+//            percentDiscount = "(5%) ";
+//        } else {
+//            discount = 0.0f;
+//        }
 
         lDiscount.setText(" Discount " + percentDiscount + ": " + discount);
 
@@ -306,7 +308,7 @@ public class TransactSellUI {
             idxProduct = Integer.parseInt(e.getActionCommand());
             String nameOfProduct = ((JRadioButton) e.getSource()).getText();
             //AutoParts autoParts = new AutoParts(shop).getObjectByName(nameOfProduct);
-            AutoParts autoParts = serviceMethodReference.getReferenceObjectByName(nameOfProduct, AutoParts.class);
+            AutoParts autoParts = shop.getServiceMethodReference().getReferenceObjectByName(nameOfProduct, AutoParts.class);
 
             updateForm();
 

@@ -1,5 +1,6 @@
 package shop.database;
 
+import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -28,7 +29,7 @@ public interface DB {
 
     //public void updateResources(Object object);
 
-    public Connection getConnection();
+    public Connection getConnection() throws PropertyVetoException, SQLException;
 
 
 }

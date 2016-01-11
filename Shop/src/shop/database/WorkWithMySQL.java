@@ -12,19 +12,20 @@ import shop.inforamation.Prices;
 import shop.reference.AutoParts;
 import shop.reference.Client;
 
-import javax.management.StandardEmitterMBean;
-import java.math.BigDecimal;
+import java.beans.PropertyVetoException;
+import java.io.IOException;
 import java.sql.*;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorkWithMySQL implements DB  {
+public class WorkWithMySQL implements DB, QueryToDB  {
 
     Connection connection;
+    ConnectionSingletonMySql connectionSingleton;
     Shop shop;
 
     private final static String URL     = "jdbc:mysql://localhost:3306/dbo_autoparts";
+    private final static String NAMEDB  = "dbo_autoparts";
     private final static String NAME    = "sa";
     private final static String PASS    = "sasa";
 
@@ -39,14 +40,16 @@ public class WorkWithMySQL implements DB  {
         try {
             Driver driver = new FabricMySQLDriver();
             DriverManager.registerDriver(driver);
-            connection = DriverManager.getConnection(URL, NAME, PASS);
 
-            Statement statement = connection.createStatement();
+            connectionSingleton = ConnectionSingletonMySql.getInstance();
+
+            connection = connectionSingleton.getConnection();
+
 //            statement.execute("SET character_set_client='utf8'");
 //            statement.execute("SET character_set_connection='utf8'");
 //              statement.execute("SET collation_connection='utf8'");
 
-        } catch (SQLException e) {
+        } catch (SQLException | PropertyVetoException | IOException e) {
             e.printStackTrace();
             throw new SQLException("Don't connection to MySQL DB");
         }
@@ -115,29 +118,6 @@ public class WorkWithMySQL implements DB  {
         }
 
     }
-
-//    @Override
-//    public void updateResources(Object object) {
-//
-//        String nameTable = object.getClass().getSimpleName();
-//
-//        if (nameTable.equals("BalancesAutoParts")) {
-//
-//            try(PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.UPDATE_BALANCEAUTOPARTS)){
-//                //"UPDATE dbo_autoparts.balance_auto_parts SET qty = ?,autoparts_id = ? WHERE autoparts_id = ?"
-//                preparedStatement.setInt(1, ((BalancesAutoParts) object).getQty());
-//                preparedStatement.setInt(2, ((BalancesAutoParts)object).getAutoParts().getId());
-//                preparedStatement.setInt(3, ((BalancesAutoParts)object).getAutoParts().getId());
-//
-//                preparedStatement.executeUpdate();
-//
-//            } catch (SQLException e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
-//
-//    }
 
     @Override
     public void deleteRecord(Object object) {
@@ -258,7 +238,8 @@ public class WorkWithMySQL implements DB  {
     private List<Prices> getAllDataOnPrices() {
         List<Prices> resultList = new ArrayList<>();
 
-        try(Statement statement = getConnection().createStatement(); Statement statementAutoParts = connection.createStatement();) {
+        try(Statement statement = connection.createStatement(); 
+			Statement statementAutoParts = connection.createStatement();) {
 
             ResultSet resultSet = statement.executeQuery(QueryToDB.GET_ALL_DATA_ON_PRICES);
             while (resultSet.next()){
@@ -292,7 +273,9 @@ public class WorkWithMySQL implements DB  {
                 price.setPrise(new Float(resultSet.getFloat("price")));
 
                 resultList.add(price);
+
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -306,7 +289,8 @@ public class WorkWithMySQL implements DB  {
 
         List<BalancesAutoParts> resultList = new ArrayList<>();
 
-        try(Statement statement = connection.createStatement(); Statement statementAutoParts = connection.createStatement()){
+        try(Statement statement = connection.createStatement();
+            Statement statementAutoParts = connection.createStatement()){
 
             ResultSet resultSet = statement.executeQuery(QueryToDB.GET_ALL_DATA_ON_BALANCEAUTOPARTS);
 
@@ -353,9 +337,6 @@ public class WorkWithMySQL implements DB  {
         List<Sale> result = new ArrayList<>();
 
         try(PreparedStatement preparedStatement = connection.prepareStatement(QueryToDB.GET_ALL_DATA_ON_SALE)){
- //"SELECT TitleSales.id, TitleSales.date, TitleSales.doc_num, TitleSales.clients_id, Line.idsales_line,
- // Line.docs_sales_id, Line.autoparts_id, Line.qty, Line.price FROM dbo_autoparts.docs_sales AS TitleSales
- // LEFT JOIN dbo_autoparts.sales_line AS Line ON TitleSales.id = Line.docs_sales_id";
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()){
@@ -389,7 +370,7 @@ public class WorkWithMySQL implements DB  {
 
         List<Client> resultList = new ArrayList<>();
 
-        try(Statement statement = getConnection().createStatement()) {
+        try(Statement statement = connection.createStatement()) {
 
             ResultSet resultSet = statement.executeQuery(QueryToDB.GET_ALL_DATA_ON_CLIENT);
             while (resultSet.next()){
@@ -401,6 +382,7 @@ public class WorkWithMySQL implements DB  {
 
                 resultList.add(client);
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -414,7 +396,7 @@ public class WorkWithMySQL implements DB  {
 
         List<AutoParts> resultList = new ArrayList<>();
 
-        try(Statement statement = getConnection().createStatement()) {
+        try(Statement statement = connection.createStatement()) {
 
             ResultSet resultSet = statement.executeQuery(QueryToDB.GET_ALL_DATA_ON_AUTOPARTS);
             while (resultSet.next()){
@@ -427,6 +409,7 @@ public class WorkWithMySQL implements DB  {
 
                 resultList.add(autoParts);
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
@@ -450,7 +433,7 @@ public class WorkWithMySQL implements DB  {
             statement.setInt(3, autoParts.getCategoriya().getID());
             statement.executeUpdate();
 
-            Statement statementLastID = connection.createStatement();
+            Statement statementLastID = getConnection().createStatement();
             ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
 
             while (resultSetLastID.next()){
@@ -488,7 +471,7 @@ public class WorkWithMySQL implements DB  {
 
             preparedStatement.executeUpdate();
 
-            Statement statementLastID = connection.createStatement();
+            Statement statementLastID = getConnection().createStatement();
             ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
 
             while (resultSetLastID.next()){
@@ -524,7 +507,7 @@ public class WorkWithMySQL implements DB  {
 
             statement.executeUpdate();
 
-            Statement statementLastID = connection.createStatement();
+            Statement statementLastID = getConnection().createStatement();
             ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
 
             while (resultSetLastID.next()){
@@ -570,7 +553,7 @@ public class WorkWithMySQL implements DB  {
 
             preparedStatement.executeUpdate();
 
-            Statement statementLastID = connection.createStatement();
+            Statement statementLastID = getConnection().createStatement();
             ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
 
             while (resultSetLastID.next()){
@@ -652,7 +635,7 @@ public class WorkWithMySQL implements DB  {
 
             preparedStatement.executeUpdate();
 
-            Statement statementLastID = connection.createStatement();
+            Statement statementLastID = getConnection().createStatement();
             ResultSet resultSetLastID = statementLastID.executeQuery("select last_insert_id()");
 
             while (resultSetLastID.next()){
@@ -809,6 +792,7 @@ public class WorkWithMySQL implements DB  {
                 client.setName(resultSet.getString("name"));
                 client.setInn(resultSet.getInt("inn"));
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }finally {
@@ -894,9 +878,11 @@ public class WorkWithMySQL implements DB  {
 
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            return balancesAutoParts;
         }
 
-        return balancesAutoParts;
+
     }
 
     private Prices getPriceByAutoPartsAndCategory(int idAutoParts, int idCategoryPrice){
@@ -929,9 +915,13 @@ public class WorkWithMySQL implements DB  {
     }
 
     @Override
-    public Connection getConnection() {
+    public Connection getConnection() throws PropertyVetoException, SQLException {
         return connection;
     }
+	
+	public Connection getNewConnection()  throws PropertyVetoException, SQLException  {
+		return connectionSingleton.getConnection();
+	}
 
     public String getNewNumDocument(Document docum){
 
@@ -967,6 +957,7 @@ public class WorkWithMySQL implements DB  {
                     result += String.valueOf(resultSet.getInt(1));
                 }
 
+
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -975,4 +966,15 @@ public class WorkWithMySQL implements DB  {
         return result;
     }
 
+    public static String getURL() {
+        return URL;
+    }
+
+    public static String getPASS() {
+        return PASS;
+    }
+
+    public static String getNAME() {
+        return NAME;
+    }
 }

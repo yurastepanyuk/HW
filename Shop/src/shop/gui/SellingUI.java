@@ -144,7 +144,7 @@ public class SellingUI {
                                             float cenaOfSale = serviceMethodInformation.getPriceByGoods(autoParts, CategoryPrice.ROZNITSA)
                                                     - discount/Byte.valueOf(iQty.getText());
 
-                                            documSale = serviceMethodDocument.newSale(client, autoParts, Byte.valueOf(iQty.getText()), cenaOfSale);
+                                            documSale = serviceMethodDocument.newSale(client, autoParts, Byte.valueOf(iQty.getText()), cenaOfSale, true);
 
 //                                            documSale = new Sale(shop);
 //                                            autoParts = new AutoParts().getObjectByName(rbutton.getText().trim());

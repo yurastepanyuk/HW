@@ -2,6 +2,8 @@ package shop.database;
 
 public interface QueryToDB {
 
+	//MYSQL
+
     public static final String GET_ALL_DATA_ON_AUTOPARTS           = "SELECT id, name, catalognumber, categoriya FROM dbo_autoparts.autoparts";
     public static final String GET_ALL_DATA_ON_CLIENT              = "SELECT id, name, inn FROM dbo_autoparts.clients";
     public static final String GET_ALL_DATA_ON_SHOPPING            = "SELECT dokTitle.id,dokTitle.date,dokTitle.doc_num,dokTitle.clients_id,lineShop.idshopping_line,lineShop.qty,lineShop.price,lineShop.docs_shopping_id,lineShop.autoparts_id FROM dbo_autoparts.docs_shopping AS dokTitle LEFT JOIN dbo_autoparts.shopping_line AS lineShop ON dokTitle.id = lineShop.docs_shopping_id";
@@ -44,5 +46,71 @@ public interface QueryToDB {
 	public static final String GET_PRICES_BY_AUTOPARTS_CATEGORY_ID   = "SELECT * FROM dbo_autoparts.prices WHERE autoparts_id = ? AND kategoriya_cena = ?";
 	public static final String GET_BALANCEAUTOPARTS_BY_AUTOPARTS_ID  = "SELECT * FROM dbo_autoparts.balance_auto_parts WHERE autoparts_id = ?";
 	public static final String GET_AUTOPART_BY_CATALOGNUMBER		 = "SELECT * FROM dbo_autoparts.autoparts WHERE catalognumber = ?";
+
+
+	//DERBY
+
+	public static final String CREATE_AUTOPARTS_DERBY = "CREATE TABLE AUTOPARTS " +
+			"(id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+			"name VARCHAR(100) NOT NULL, " +
+			"catalognumber VARCHAR(100) NOT NULL, " +
+			"categoriya INT, " +
+			"PRIMARY KEY (id), " +
+			"UNIQUE (catalognumber))";
+	public static final String CREATE_IDX_AUTOPARTS_DERBY_CATALOGNUMBER = "CREATE UNIQUE INDEX APP.IDX_AUTOPARTSCATNUM ON APP.AUTOPARTS (CATALOGNUMBER)";
+
+	public static final String CREATE_CLIENT_DERBY = "CREATE TABLE clients " +
+			"(id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+			"name VARCHAR(100) NOT NULL, " +
+			"inn INT  DEFAULT NULL, " +
+			"PRIMARY KEY (id))";
+	public static final String CREATE_IDX_CLIENT_DERBY_INN = "CREATE INDEX APP.IDX_CLIENTINN_UNIQUE ON APP.CLIENTS (INN)";
+
+	public static final String CREATE_DOCSSHOPPING_DERBY = "CREATE TABLE docs_shopping " +
+			"(id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+			"date DATE NOT NULL, " +
+			"doc_num VARCHAR(12), " +
+			"clients_id INT NOT NULL, " +
+			"PRIMARY KEY (id), " +
+			"UNIQUE (doc_num))";
+	public static final String CREATE_IDX_DOCSSHOPPING_DERBY_CLIENT = "CREATE UNIQUE INDEX APP.IDX_CLIENTID_UNIQUE ON APP.DOCS_SHOPPING (CLIENTS_ID)";
+
+	public static final String CREATE_DOCSSALES_DERBY = "CREATE TABLE docs_sales " +
+			"(id INT NOT NULL GENERATED ALWAYS AS IDENTITY, " + //(START WITH 1, INCREMENT BY 1)
+			"date DATE NOT NULL, " +
+			"doc_num VARCHAR(12), " +
+			"clients_id INT NOT NULL, " +
+			"PRIMARY KEY (id), " +
+			"UNIQUE (doc_num))";
+
+	public static final String CREATE_PRICES_DERBY = "CREATE TABLE prices " +
+			"(price_id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+			"price FLOAT, " +
+			"kategoriya_cena SMALLINT NOT NULL, " +
+			"autoparts_id INT NOT NULL, " +
+			"PRIMARY KEY (price_id)) ";
+
+	public static final String CREATE_BALANCE_AP_DERBY = "CREATE TABLE balance_auto_parts " +
+			"(qty INT, " +
+			"balance_id INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+			"autoparts_id INT, " +
+			"PRIMARY KEY (balance_id)) ";
+
+
+	public static final String CREATE_DOCSSALESLINE_DERBY = "CREATE TABLE sales_line " +
+			"(idsales_line INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+			"qty SMALLINT, " +
+			"price FLOAT, " +
+			"docs_sales_id INT NOT NULL, " +
+			"autoparts_id INT NOT NULL, " +
+			"PRIMARY KEY (idsales_line)) ";
+
+	public static final String CREATE_DOCSSHOPLINE_DERBY = "CREATE TABLE shopping_line " +
+			"(idshopping_line INT NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+			"qty SMALLINT, " +
+			"price FLOAT, " +
+			"docs_shopping_id INT NOT NULL, " +
+			"autoparts_id INT NOT NULL, " +
+			"PRIMARY KEY (idshopping_line)) ";
 
 }

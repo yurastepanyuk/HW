@@ -11,5 +11,5 @@ public interface MethodsDocument {
 
     public Shopping newShopping(Client client, AutoParts autoParts, int qty, float cena);
 
-    public Sale newSale(Client client, AutoParts autoParts, int qty, float cena);
+    public Sale newSale(Client client, AutoParts autoParts, int qty, float cena, boolean save);
 }

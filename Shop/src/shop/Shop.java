@@ -1,6 +1,7 @@
 package shop;
 
 import shop.database.DB;
+import shop.database.WorkWithDerby;
 import shop.database.WorkWithLists;
 import shop.database.WorkWithMySQL;
 import shop.documents.Sale;
@@ -43,31 +44,44 @@ public class Shop {
 		serviceMethodInformation = new ServiceMethodInformation(this);
 	}
 
-	/*
-	 * Inicialisaciya magasina
-	 */
 	public void initialisation(){
 
 		try {
-			db = new WorkWithMySQL(this);
-			db.inicialisation();
-			//throw new SQLException();
+
+			throw new SQLException();
+//			db = new WorkWithMySQL(this);
+//			db.inicialisation();
+
+
 		} catch (SQLException e) {
-			db = new WorkWithLists();
-			try {
+
+			try{
+				db = new WorkWithDerby(this);
 				db.inicialisation();
 			} catch (SQLException e1) {
-				e1.printStackTrace();
+				db = new WorkWithLists();
+				try {
+					db.inicialisation();
+				} catch (SQLException e2) {
+					e1.printStackTrace();
+				}
 			}
+
 		}
+
+		initialisationData();
+
+	}
+
+	private void initialisationData(){
 
 		createAutoPartsAndPrices();
 
 		createClients();
 
-//		createShops();
-//
-//		cerateSales();
+		createShops();
+
+		cerateSales();
 
 		createReports();
 	}
@@ -153,25 +167,25 @@ public class Shop {
 		autoParts = serviceMethodReference.getReferenceObjectById(1, AutoParts.class);
 		client    = serviceMethodReference.getReferenceObjectById(2, Client.class);
 		cena	  = serviceMethodInformation.getPriceByGoods(autoParts, CategoryPrice.ROZNITSA);
-		documSale = serviceMethodDocument.newSale(client, autoParts, (byte)2, cena);
+		documSale = serviceMethodDocument.newSale(client, autoParts, (byte)2, cena, true);
 		documSale.setDate(documSale.getDate() - 5);
 
 		autoParts = serviceMethodReference.getReferenceObjectById(2, AutoParts.class);
 		client    = serviceMethodReference.getReferenceObjectById(1, Client.class);
 		cena	  = serviceMethodInformation.getPriceByGoods(autoParts, CategoryPrice.ROZNITSA);
-		documSale = serviceMethodDocument.newSale(client, autoParts, (byte)1, cena);
+		documSale = serviceMethodDocument.newSale(client, autoParts, (byte)1, cena, true);
 		documSale.setDate(documSale.getDate() - 4);
 
 		autoParts = serviceMethodReference.getReferenceObjectById(5, AutoParts.class);
 		client    = serviceMethodReference.getReferenceObjectById(1, Client.class);
 		cena	  = serviceMethodInformation.getPriceByGoods(autoParts, CategoryPrice.ROZNITSA);
-		documSale = serviceMethodDocument.newSale(client, autoParts, (byte)3, cena);
+		documSale = serviceMethodDocument.newSale(client, autoParts, (byte)3, cena, true);
 		documSale.setDate(documSale.getDate() - 4);
 
 		autoParts = serviceMethodReference.getReferenceObjectById(4, AutoParts.class);
 		client    = serviceMethodReference.getReferenceObjectById(1, Client.class);
 		cena	  = serviceMethodInformation.getPriceByGoods(autoParts, CategoryPrice.ROZNITSA);
-		documSale = serviceMethodDocument.newSale(client, autoParts, (byte)1, cena);
+		documSale = serviceMethodDocument.newSale(client, autoParts, (byte)1, cena, true);
 		documSale.setDate(documSale.getDate() - 100);
 
 	}
@@ -195,9 +209,6 @@ public class Shop {
 
 	}
 
-	/*
-	 * Napolnaet DB AutoParts
-	 */
 	private void createAutoPartsAndPrices() {
 
 		AutoParts ap = new AutoParts(this);
@@ -285,11 +296,19 @@ public class Shop {
 		return db;
 	}
 
-	public void setDb(WorkWithLists db) {
+	public void setDb(DB db) {
 		this.db = db;
 	}
-	
-	
-	
 
+	public ServiceMethodReference getServiceMethodReference() {
+		return serviceMethodReference;
+	}
+
+	public ServiceMethodDocument getServiceMethodDocument() {
+		return serviceMethodDocument;
+	}
+
+	public ServiceMethodInformation getServiceMethodInformation() {
+		return serviceMethodInformation;
+	}
 }

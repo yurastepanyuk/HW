@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="Shop:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Shop_jar</output-path>
+    <root id="archive" name="Shop.jar">
+      <element id="module-output" name="Shop" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/mchange-commons-java-0.2.10.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/derby-10.11.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Libraries/junit-4.12.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/mysql-connector-java-5.1.37.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Libraries/mockito-all-1.9.5.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/c3p0-0.9.5.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
