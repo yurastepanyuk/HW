@@ -1,6 +1,6 @@
-package Tanks.battlefieldobjects;
+package tanks.battlefieldobjects;
 
-import Tanks.commoninterface.BattleFieldObject;
+import tanks.commoninterface.BattleFieldObject;
 
 import java.awt.*;
 import java.awt.image.ImageObserver;

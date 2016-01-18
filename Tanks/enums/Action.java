@@ -1,4 +1,4 @@
-package Tanks.enums;
+package tanks.enums;
 
 public enum Action {
 

@@ -1,23 +1,23 @@
-package Tanks.tanksobject;
+package tanks.tanksobject;
 
-import Tanks.battlefieldobjects.Eagle;
-import Tanks.BattleField;
-import Tanks.battlefieldobjects.BattleFieldObjects;
-import Tanks.battlefieldobjects.Brick;
-import Tanks.battlefieldobjects.Rock;
-import Tanks.battlefieldobjects.Water;
-import Tanks.commoninterface.Tank;
-import Tanks.enums.Action;
-import Tanks.enums.Behavior;
-import Tanks.enums.Colors;
-import Tanks.enums.Direction;
+import tanks.battlefieldobjects.Eagle;
+import tanks.BattleField;
+import tanks.battlefieldobjects.BattleFieldObjects;
+import tanks.battlefieldobjects.Brick;
+import tanks.battlefieldobjects.Rock;
+import tanks.battlefieldobjects.Water;
+import tanks.commoninterface.Tank;
+import tanks.enums.Action;
+import tanks.enums.Behavior;
+import tanks.enums.Colors;
+import tanks.enums.Direction;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -701,6 +701,24 @@ public abstract class AbstractTank implements Tank {
 
 			} else {
 				actionsTank.add(action);
+			}
+
+		}
+
+	}
+
+	public void setActionTank(List<Map<String, Object>> actions) {
+
+		actionsTank.clear();
+
+		for (Map<String, Object> curActionLog : actions) {
+
+			if (curActionLog.containsKey("direction")) {
+				actionsTank.add(curActionLog.get("direction"));
+			}
+
+			if (curActionLog.containsKey("action")) {
+				actionsTank.add(curActionLog.get("action"));
 			}
 
 		}

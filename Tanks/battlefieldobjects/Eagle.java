@@ -1,6 +1,6 @@
-package Tanks.battlefieldobjects;
+package tanks.battlefieldobjects;
 
-import Tanks.Launcher;
+import tanks.Launcher;
 
 import javax.imageio.ImageIO;
 

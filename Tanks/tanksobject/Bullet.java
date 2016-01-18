@@ -1,9 +1,9 @@
-package Tanks.tanksobject;
+package tanks.tanksobject;
 
 
-import Tanks.commoninterface.Destroyable;
-import Tanks.commoninterface.Drawable;
-import Tanks.enums.Direction;
+import tanks.commoninterface.Destroyable;
+import tanks.commoninterface.Drawable;
+import tanks.enums.Direction;
 
 import java.awt.*;
 

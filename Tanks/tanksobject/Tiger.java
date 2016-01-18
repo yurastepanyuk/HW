@@ -1,11 +1,11 @@
-package Tanks.tanksobject;
+package tanks.tanksobject;
 
-import Tanks.BattleField;
-import Tanks.Launcher;
-import Tanks.enums.Action;
-import Tanks.enums.Behavior;
-import Tanks.enums.Colors;
-import Tanks.enums.Direction;
+import tanks.BattleField;
+import tanks.Launcher;
+import tanks.enums.Action;
+import tanks.enums.Behavior;
+import tanks.enums.Colors;
+import tanks.enums.Direction;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

@@ -1,15 +1,15 @@
-package Tanks;
+package tanks;
 
-import Tanks.battlefieldobjects.BattleFieldObjects;
-import Tanks.battlefieldobjects.Brick;
-import Tanks.battlefieldobjects.Eagle;
-import Tanks.battlefieldobjects.Empty;
-import Tanks.battlefieldobjects.Rock;
-import Tanks.commoninterface.BattleFieldObject;
-import Tanks.commoninterface.Tank;
-import Tanks.enums.*;
-import Tanks.enums.Action;
-import Tanks.tanksobject.*;
+import tanks.battlefieldobjects.BattleFieldObjects;
+import tanks.battlefieldobjects.Brick;
+import tanks.battlefieldobjects.Eagle;
+import tanks.battlefieldobjects.Empty;
+import tanks.battlefieldobjects.Rock;
+import tanks.commoninterface.BattleFieldObject;
+import tanks.commoninterface.Tank;
+import tanks.enums.*;
+import tanks.enums.Action;
+import tanks.tanksobject.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -17,7 +17,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.*;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -55,6 +58,10 @@ public class ActionField extends JPanel {
 
 	private ExecutorService serviceThread;
 
+	public final String LOG_NAME = System.getProperty("user.dir") + "\\" + "LogTanks.lg";
+	public boolean flRepeaatGame = false;
+	public Map<String, List<Map<String, Object>>>  mapLog;
+
  	public ActionField() throws Exception {
 
 		serviceThread = Executors.newCachedThreadPool();
@@ -80,6 +87,9 @@ public class ActionField extends JPanel {
 		switchingPanels(GameMode.OPTIONS);
 
 		serviceThread.submit(startIndependentScreenUpdate());
+
+		FileOutputStream fileOutputStream = new FileOutputStream(LOG_NAME);
+		fileOutputStream.close();
 
 	}
 
@@ -295,7 +305,12 @@ public class ActionField extends JPanel {
 		ActionListener buttonListener = new ButtonListener(this);
 		buttonStart.addActionListener(buttonListener);
 
-		panel.add(buttonStart, new GridBagConstraints(0,4,1,1,0,0,GridBagConstraints.CENTER,0, new Insets(0,0,0,0),0,0));
+		panel.add(buttonStart, new GridBagConstraints(0,4,1,1,0,0,GridBagConstraints.CENTER,0, new Insets(20,0,20,0),0,0));
+
+		JButton buttonRepeatGame = new JButton("Repeat Game");
+		buttonRepeatGame.setActionCommand("repeatGame");
+		buttonRepeatGame.addActionListener(buttonListener);
+		panel.add(buttonRepeatGame, new GridBagConstraints(0,5,1,1,0,0, GridBagConstraints.CENTER,0, new Insets(0,0,0,0),0,0));
 
 		return panel;
 
@@ -316,6 +331,8 @@ public class ActionField extends JPanel {
 				inicialisationAF();
 				switchingPanels(GameMode.GAME);
 
+				flRepeaatGame = false;
+
 				Thread thr = new Thread(){
 					@Override
 					public void run(){
@@ -325,10 +342,170 @@ public class ActionField extends JPanel {
 				thr.start();
 			} else if (e.getActionCommand().equals("options")){
 				switchingPanels(GameMode.OPTIONS);
+			} else if (e.getActionCommand().equals("repeatGame")){
+
+				flRepeaatGame = true;
+
+				mapLog = logBattleRestore();
+
+				if (mapLog == null) {
+					return;
+				}
+
+				switchingPanels(GameMode.OPTIONS);
+
+				inicialisationAF();
+				switchingPanels(GameMode.GAME);
+
+				Thread thr = new Thread(){
+					@Override
+					public void run(){
+						runTheGame();
+					}
+				};
+				thr.start();
 			}
 
 		}
 
+	}
+
+	private Map<String, List<Map<String, Object>>> logBattleRestore(){
+
+		Map<String, List<Map<String, Object>> > logTanks   = new HashMap<>();
+		List<Map<String, Object>> actionListDefender= new ArrayList<>();
+		List<Map<String, Object>> actionListAgressor= new ArrayList<>();
+
+		try(FileReader fileReaderLogBattle = new FileReader(LOG_NAME);
+			BufferedReader bufReaderLogBattle = new BufferedReader(fileReaderLogBattle)) {
+
+			String curLogTank = "";
+
+			while ((curLogTank = bufReaderLogBattle.readLine()) != null){
+				String [] curAction = curLogTank.split(";");
+				//Action;AGRESSOR;TURN;DOWN;0;8;
+				String ltypeLogRecord = curAction[0].trim();
+				String ltypeTank	  = curAction[1].trim();
+				String ltypeAction	  = curAction[2].trim();
+				String lDirection	  = curAction[3].trim();
+				String lY			  = curAction[4].trim();
+				String lX			  = curAction[5].trim();
+				String lnameClass	  = curAction[6].trim();
+
+				Action actionTank 		= Action.valueOf(ltypeAction);
+				Direction directionTank = Direction.valueOf(lDirection);
+				Integer quadrantY		= Integer.valueOf(lY);
+				Integer quadrantX		= Integer.valueOf(lX);
+				Behavior behaviorTank	= ltypeTank.equals("DEFENDER")?Behavior.DEFENDER:Behavior.AGRESSOR;
+
+				Map<String, Object> actionMapTank = new HashMap<>();
+
+				if (ltypeLogRecord.equals("Action")){
+
+					actionMapTank.put("direction", directionTank);
+					actionMapTank.put("action"	 , actionTank);
+					actionMapTank.put("quadrantY", quadrantY);
+					actionMapTank.put("quadrantX", quadrantX);
+
+					if (ltypeTank.equals("DEFENDER")){
+
+						actionListDefender.add(actionMapTank);
+
+					} else if (ltypeTank.equals("AGRESSOR")){
+
+						 actionListAgressor.add(actionMapTank);
+
+					}
+
+				} else if (ltypeLogRecord.equals("GENERATE")){
+
+					//GENERATE;DEFENDER;NONE;UP;8;2;
+					Class<?> clsTank 	= null;
+					Tank  createTank 	= null;
+					Class[] paramConstruktor = new Class[2];
+					paramConstruktor[0] = battleField.getClass();
+					paramConstruktor[1] = behaviorTank.getClass();
+
+					try {
+						clsTank 	= Class.forName("tanks.tanksobject."+ lnameClass);
+						Constructor constructorTank = clsTank.getConstructor(paramConstruktor);
+						//Class<?> ddd = Class.forName("tanks.tanksobject."+ lnameClass);
+						createTank  = (Tank)constructorTank.newInstance(battleField, behaviorTank);
+						//Tank createTank	= (Tank)obj;
+						((AbstractTank) createTank).setY(quadrantY * 64);
+						((AbstractTank) createTank).setX_(quadrantX * 64);
+						((AbstractTank) createTank).setHandControl(true);
+					} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException  e) {
+						e.printStackTrace();
+						return null;
+					}
+
+					if (ltypeTank.equals("DEFENDER")){
+						((AbstractTank) createTank).setHandControl(false);
+						createTank.setTargetForTank();
+
+						actionMapTank.put("DEFENDER", createTank);
+						actionListDefender.add(actionMapTank);
+
+					} else if (ltypeTank.equals("AGRESSOR")){
+						((AbstractTank)createTank).setColor(Colors.ORANGE);
+						((AbstractTank)createTank).bullet = new Bullet();
+						createTank.setTarget(battleField.getQuadrantDefender());
+
+						timeCreateNewAgressor = 0;
+
+						createTank.setTargetForTank();
+
+						actionMapTank.put("AGRESSOR", createTank);
+						actionListAgressor.add(actionMapTank);
+					}
+
+				}
+			}
+
+			logTanks.put("ActionDefender", actionListDefender);
+			logTanks.put("ActionAgressor", actionListAgressor);
+
+			Tank searchTank = null;
+			searchTank = getTankFromLog("DEFENDER", logTanks);
+			if (searchTank != null) {
+				((AbstractTank)searchTank).setActionTank(actionListDefender);
+			}
+
+			searchTank = getTankFromLog("AGRESSOR", logTanks);
+			if (searchTank != null) {
+				((AbstractTank)searchTank).setActionTank(actionListAgressor);
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		return logTanks;
+	}
+
+	private Tank getTankFromLog(String typeBehavior, Map log){
+
+		List<Map<String, Object>> listAction;
+
+		if (typeBehavior.equals("DEFENDER")){
+			listAction = (List)log.get("ActionDefender");
+		} else {
+			listAction = (List)log.get("ActionAgressor");
+		}
+
+		for (Map<String, Object> curAction : listAction) {
+
+			boolean isTank = curAction.containsKey(typeBehavior);
+
+			if (isTank) {
+				return (Tank) curAction.get(typeBehavior);
+			}
+
+		}
+
+		return null;
 	}
 
 	private class RBListener implements ActionListener {
@@ -417,6 +594,26 @@ public class ActionField extends JPanel {
 					defenders.add(tankRun);
 				}
 			}
+			try {
+				logAction("GENERATE", tankRun, Action.NONE, tankRun.getDirection());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void ifSeeingTargetThenShot(){
+			if (!((AbstractTank) tankRun).isHandControl() && !flRepeaatGame) {
+				int qtyShotOnTarget = tankRun.isSeeingTargets();
+				if (qtyShotOnTarget != 0) {
+					for (int idxShot = 0; idxShot <= qtyShotOnTarget; idxShot++) {
+						try {
+							processAction(Action.FIRE, tankRun);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
 		}
 
 		@Override
@@ -427,36 +624,16 @@ public class ActionField extends JPanel {
 			while (gameMode == GameMode.GAME) {
 
 					if (!tankRun.isDestroyed()) {
-						if (!((AbstractTank) tankRun).isHandControl()) {
-							int qtyShotOnTarget = tankRun.isSeeingTargets();
-							if (qtyShotOnTarget != 0) {
-								for (int idxShot = 0; idxShot <= qtyShotOnTarget; idxShot++) {
-									try {
-										processAction(Action.FIRE, tankRun);
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							}
-						}
+
+						ifSeeingTargetThenShot();
+
 						try {
 							processAction(tankRun.setUp(), tankRun);
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 
-						if (!((AbstractTank) tankRun).isHandControl()) {
-							int qtyShotOnTarget = tankRun.isSeeingTargets();
-							if (qtyShotOnTarget != 0) {
-								for (int idxShot = 0; idxShot <= qtyShotOnTarget; idxShot++) {
-									try {
-										processAction(Action.FIRE, tankRun);
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-							}
-						}
+						ifSeeingTargetThenShot();
 
 						if (((AbstractTank) tankRun).isHandControl() && keyMovePressed.get() && (timeAddMove.get() <= System.currentTimeMillis())) {
 							for (int i = 0; i < 10; i++) {
@@ -486,21 +663,37 @@ public class ActionField extends JPanel {
 
 		timeCreateDefender = 0;
 
+		Tank defender = null;
+		Tank agressor = null;
+
 		defenders.clear();
 		agressors.clear();
 		shotsBullet.clear();
 
 		if (serviceThread.isShutdown()){
-			serviceThread = Executors.newFixedThreadPool(5);
+			serviceThread = Executors.newCachedThreadPool();//newFixedThreadPool(5);
 		}
 
-		Tank defender = new T34(battleField, Behavior.DEFENDER);
-		((AbstractTank)defender).setHandControl(true);
-		defender.setTargetForTank();
-		player = defender;
+		if (!flRepeaatGame) {
+			defender = new T34(battleField, Behavior.DEFENDER);
+			((AbstractTank) defender).setHandControl(true);
+			defender.setTargetForTank();
+			player = defender;
 
-		Tank agressor  = getNewAgressor();
-		agressor.setTargetForTank();
+			agressor = getNewAgressor();
+			agressor.setTargetForTank();
+		} else {
+			defender = getTankFromLog("DEFENDER", mapLog);
+			player = defender;
+
+			agressor = getTankFromLog("AGRESSOR", mapLog);
+			timeCreateNewAgressor = 0;
+
+			if (agressor == null || defender == null) {
+				return;
+			}
+
+		}
 
 		RunTheGameTank runTheGameDefender = new RunTheGameTank(defender);
 		RunTheGameTank runTheGameAgressor = new RunTheGameTank(agressor);
@@ -601,6 +794,8 @@ public class ActionField extends JPanel {
 	}
 
 	public void processFire(Bullet bullet) throws Exception {
+
+		logAction("Action", bullet.getTankParent(), Action.FIRE, bullet.getTankParent().getDirection());
 
 		int count = 0;
 
@@ -841,17 +1036,19 @@ public class ActionField extends JPanel {
 		return XY;
 	}
 
-	public void processTurn(AbstractTank tank) {
-
-		//this.defender = tank;
-
-		repaint();
-		
-	}	
+//	public void processTurn(AbstractTank tank) {
+//
+//		//this.defender = tank;
+//
+//		repaint();
+//
+//	}
 
 	public void processMove(Tank tank) throws Exception {
 		
 		//this.defender = tank;
+
+		logAction("Action", tank, Action.MOVE, tank.getDirection());
 
 		processTurn(tank);
 		
@@ -908,6 +1105,36 @@ public class ActionField extends JPanel {
 
 	private void processTurn(Tank tank) throws Exception {
 		repaint();
+		logAction("Action", tank, Action.TURN, tank.getDirection());
+	}
+
+	private void logAction(String typeAction,Tank tank, Action action, Direction direction) throws IOException {
+
+		FileWriter logFileWriter = new FileWriter(LOG_NAME,true);
+		//myString.split(" ");//в массив с разделителями
+
+		if (typeAction.equals("Action")) {
+			AbstractTank logTank = (AbstractTank)tank;
+			logFileWriter.write(typeAction + ";");
+			logFileWriter.write(logTank.getBehavior().toString() + ";" + action.toString() + ";" + direction.toString()+ ";");
+			logFileWriter.write(logTank.getYXnow()[0]+ ";");//Y
+			logFileWriter.write(logTank.getYXnow()[1]+ ";");
+			logFileWriter.write(logTank.getClass().getSimpleName()+ ";");
+			logFileWriter.write((int)'\n');
+			logFileWriter.flush();
+			logFileWriter.close();
+		}else if (typeAction.equals("GENERATE")){
+			AbstractTank logTank = (AbstractTank)tank;
+			logFileWriter.write(typeAction + ";");
+			logFileWriter.write(logTank.getBehavior().toString() + ";" + action.toString() + ";" + direction.toString()+ ";");
+			logFileWriter.write(logTank.getYXnow()[0]+ ";");//Y
+			logFileWriter.write(logTank.getYXnow()[1]+ ";");
+			logFileWriter.write(logTank.getClass().getSimpleName()+ ";");
+			logFileWriter.write((int)'\n');
+			logFileWriter.flush();
+			logFileWriter.close();
+		}
+
 	}
 
 	public void moveToQuadrant(int y, int x, Tank tank) throws Exception {

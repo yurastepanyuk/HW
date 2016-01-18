@@ -1,9 +1,9 @@
-package Tanks.commoninterface;
+package tanks.commoninterface;
 
-import Tanks.enums.Action;
-import Tanks.enums.Colors;
-import Tanks.enums.Direction;
-import Tanks.tanksobject.Bullet;
+import tanks.enums.Action;
+import tanks.enums.Colors;
+import tanks.enums.Direction;
+import tanks.tanksobject.Bullet;
 
 import java.util.List;
 

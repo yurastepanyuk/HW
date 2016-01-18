@@ -1,4 +1,4 @@
-package Tanks.commoninterface;
+package tanks.commoninterface;
 
 import java.awt.*;
 

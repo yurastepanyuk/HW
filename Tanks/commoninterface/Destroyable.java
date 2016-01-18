@@ -1,4 +1,4 @@
-package Tanks.commoninterface;
+package tanks.commoninterface;
 
 public interface Destroyable {
 

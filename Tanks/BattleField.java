@@ -1,10 +1,10 @@
-package Tanks;
+package tanks;
 
-import Tanks.battlefieldobjects.*;
-import Tanks.commoninterface.Drawable;
-import Tanks.enums.Behavior;
-import Tanks.enums.Direction;
-import Tanks.tanksobject.AbstractTank;
+import tanks.battlefieldobjects.*;
+import tanks.commoninterface.Drawable;
+import tanks.enums.Behavior;
+import tanks.enums.Direction;
+import tanks.tanksobject.AbstractTank;
 
 import java.awt.*;
 
